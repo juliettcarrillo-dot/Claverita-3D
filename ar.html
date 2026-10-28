@@ -3,195 +3,101 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Portal magico del Dia de Muertos - AR</title>
-
-<script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-<script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Mi calaverita cobra vida en tu cámara</title>
 <style>
-body{
-  margin:0;
-  overflow:hidden;
-  font-family:Arial,sans-serif;
-}
-
-#guide{
-  position:fixed;
-  z-index:10;
-  left:12px;
-  right:12px;
-  top:12px;
-  background:#211331d9;
-  color:white;
-  border:1px solid #e9ac4a;
-  border-radius:12px;
-  padding:12px;
-  text-align:center;
-  font-size:14px;
-  pointer-events:none;
-}
-
-#status{
-  color:#ffd57e;
-  font-weight:bold;
-  margin-top:5px;
-}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#130c22;color:white;font-family:system-ui,Arial,sans-serif}
+#camera,#three{position:fixed;inset:0;width:100%;height:100%}#camera{object-fit:cover;background:#130c22;z-index:1}#three{z-index:2;touch-action:none;display:none}
+#header{position:fixed;z-index:5;top:calc(10px + env(safe-area-inset-top));left:10px;right:10px;text-align:center;background:#211431d9;border:1px solid #ffbc5c;border-radius:14px;padding:9px 12px;pointer-events:none}
+h1{font-size:16px;color:#ffd47e;margin:0 0 4px}#status{font-size:12px;line-height:1.4}
+#actions{position:fixed;z-index:6;bottom:calc(12px + env(safe-area-inset-bottom));left:8px;right:8px;display:flex;justify-content:center;flex-wrap:wrap;gap:7px}
+button,a{border:0;border-radius:11px;padding:11px 12px;font:700 13px system-ui;text-decoration:none;cursor:pointer}#start,#repeat{background:#ffb94d;color:#25142b}#repeat{display:none}#home{background:#d9bdff;color:#281338}#retry{display:none;background:#ffdca0;color:#29172f}
+#help{position:fixed;z-index:4;bottom:calc(73px + env(safe-area-inset-bottom));left:12px;right:12px;text-align:center;font-size:12px;text-shadow:0 2px 5px black;pointer-events:none}
+#notice{position:fixed;z-index:4;top:50%;left:50%;transform:translate(-50%,-50%);width:min(88vw,360px);padding:18px;background:#211431eb;border:1px solid #ffbc5c;border-radius:16px;text-align:center;font-size:14px;line-height:1.5}
+#notice.hidden{display:none}
 </style>
 </head>
-
 <body>
-
-<div id="guide">
-  💀 PORTAL MAGICO DEL DIA DE MUERTOS
-  <div id="status">
-    Permite la camara y apunta al marcador HIRO impreso.
-  </div>
-</div>
-
-<a-scene
-  embedded
-  vr-mode-ui="enabled:false"
-  renderer="logarithmicDepthBuffer:true;antialias:true"
-  arjs="sourceType:webcam;debugUIEnabled:false;trackingMethod:best;">
-
-  <a-marker preset="hiro" emitevents="true" id="hiro">
-
-    <!--
-      Unico ajuste respecto al original:
-      reducir el conjunto del portal al 55%.
-    -->
-    <a-entity scale="0.55 0.55 0.55">
-
-      <!-- Portal magico -->
-      <a-entity position="0 0.75 0">
-
-        <a-torus
-          radius="0.64"
-          radius-tubular="0.055"
-          rotation="0 0 0"
-          material="color:#f9a528;metalness:0.35;roughness:0.3;emissive:#d97508;emissiveIntensity:0.55"
-          animation="property:rotation;to:0 360 0;dur:13000;loop:true;easing:linear">
-        </a-torus>
-
-        <a-torus
-          radius="0.51"
-          radius-tubular="0.025"
-          material="color:#c56eff;emissive:#8e3aff;emissiveIntensity:0.75"
-          animation="property:rotation;to:0 -360 0;dur:9000;loop:true;easing:linear">
-        </a-torus>
-
-        <a-circle
-          radius="0.46"
-          material="color:#6921a5;opacity:0.3;transparent:true;side:double">
-        </a-circle>
-
-        <a-sphere
-          radius="0.13"
-          material="color:#fbc65b;emissive:#d98d15;emissiveIntensity:0.8;opacity:0.85;transparent:true"
-          animation="property:scale;to:1.35 1.35 1.35;dir:alternate;dur:1300;loop:true">
-        </a-sphere>
-
-        <a-entity
-          light="type:point;color:#ffae40;intensity:1.3;distance:3">
-        </a-entity>
-
-      </a-entity>
-
-      <!-- Flores -->
-      <a-entity position="-0.66 0.12 0.20">
-        <a-sphere radius="0.09" color="#ffb000"></a-sphere>
-        <a-sphere position="0.10 0 0" radius="0.075" color="#ff7600"></a-sphere>
-        <a-sphere position="-0.07 0.07 0" radius="0.075" color="#ffc600"></a-sphere>
-        <a-sphere position="0 -0.09 0" radius="0.075" color="#ed6900"></a-sphere>
-      </a-entity>
-
-      <a-entity position="0.65 0.12 0.20">
-        <a-sphere radius="0.09" color="#ffb000"></a-sphere>
-        <a-sphere position="0.10 0 0" radius="0.075" color="#ff7600"></a-sphere>
-        <a-sphere position="-0.07 0.07 0" radius="0.075" color="#ffc600"></a-sphere>
-        <a-sphere position="0 -0.09 0" radius="0.075" color="#ed6900"></a-sphere>
-      </a-entity>
-
-      <!-- Velas -->
-      <a-cylinder
-        position="-0.45 0.13 0.44"
-        radius="0.055"
-        height="0.25"
-        color="#fff0ce">
-      </a-cylinder>
-
-      <a-cone
-        position="-0.45 0.31 0.44"
-        radius-bottom="0.045"
-        radius-top="0"
-        height="0.13"
-        color="#ffb400"
-        material="emissive:#ff8000;emissiveIntensity:0.65"
-        animation="property:scale;to:0.8 1.2 0.8;dir:alternate;dur:600;loop:true">
-      </a-cone>
-
-      <a-cylinder
-        position="0.45 0.13 0.44"
-        radius="0.055"
-        height="0.25"
-        color="#fff0ce">
-      </a-cylinder>
-
-      <a-cone
-        position="0.45 0.31 0.44"
-        radius-bottom="0.045"
-        radius-top="0"
-        height="0.13"
-        color="#ffb400"
-        material="emissive:#ff8000;emissiveIntensity:0.65"
-        animation="property:scale;to:0.8 1.2 0.8;dir:alternate;dur:750;loop:true">
-      </a-cone>
-
-      <!-- Particulas -->
-      <a-sphere
-        position="-0.35 0.6 0.3"
-        radius="0.025"
-        material="color:#ffd662;emissive:#ffac00"
-        animation="property:position;to:-0.35 1.55 0.3;dur:3000;loop:true">
-      </a-sphere>
-
-      <a-sphere
-        position="0.28 0.35 0.25"
-        radius="0.023"
-        material="color:#d994ff;emissive:#8a35ff"
-        animation="property:position;to:0.28 1.6 0.25;dur:3600;loop:true">
-      </a-sphere>
-
-      <a-sphere
-        position="0.1 0.1 -0.3"
-        radius="0.027"
-        material="color:#ffd662;emissive:#ffac00"
-        animation="property:position;to:0.1 1.45 -0.3;dur:2600;loop:true">
-      </a-sphere>
-
-    </a-entity>
-
-  </a-marker>
-
-  <a-entity camera></a-entity>
-
-</a-scene>
-
-<script>
-window.addEventListener('load',()=>{
-  const m=document.getElementById('hiro');
-  const s=document.getElementById('status');
-
-  m.addEventListener('markerFound',()=>{
-    s.textContent='¡Portal activado! Mueve lentamente tu celular.';
-  });
-
-  m.addEventListener('markerLost',()=>{
-    s.textContent='Apunta nuevamente al marcador HIRO.';
-  });
-});
+<video id="camera" autoplay muted playsinline></video>
+<div id="three"></div>
+<div id="header"><h1>💀✨ Mi calaverita cobra vida</h1><div id="status">Preparando cámara...</div></div>
+<div id="notice">📷 Permite el acceso a la cámara para comenzar.</div>
+<div id="help">Arrastra la calaverita para moverla · Pellizca para cambiar su tamaño</div>
+<div id="actions"><button id="start">✨ Activar magia</button><button id="repeat">↻ Repetir historia</button><button id="retry">📷 Reintentar cámara</button><a id="home" href="index.html">⌂ Inicio</a></div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+const video=document.getElementById('camera'), layer=document.getElementById('three');
+const status=document.getElementById('status'), notice=document.getElementById('notice');
+const startBtn=document.getElementById('start'),repeatBtn=document.getElementById('repeat'),retryBtn=document.getElementById('retry');
+let stream=null,ready=false,active=false,started=0;
+async function cameraOn(){
+  retryBtn.style.display='none';notice.classList.remove('hidden');notice.textContent='📷 Solicitando acceso a la cámara...';
+  try{
+    if(!navigator.mediaDevices?.getUserMedia)throw new Error('Este navegador no permite usar la cámara.');
+    if(stream)stream.getTracks().forEach(t=>t.stop());
+    stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});
+    video.srcObject=stream;await video.play();ready=true;notice.classList.add('hidden');status.textContent='📷 Cámara lista. Enfoca tu calaverita y toca Activar magia.';
+  }catch(e){ready=false;notice.textContent='⚠️ No se pudo abrir la cámara: '+(e.name==='NotAllowedError'?'revisa los permisos del sitio.':e.message);retryBtn.style.display='inline-block';status.textContent='Cámara no disponible';}
+}
+retryBtn.onclick=cameraOn;
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,.1,100);
+camera.position.set(0,1.5,7.7);camera.lookAt(0,1.5,0);
+const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.setClearColor(0x000000,0);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.domElement.style.cssText='width:100%;height:100%;display:block;touch-action:none';layer.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xffffff,0x76559c,2.6));
+const sun=new THREE.DirectionalLight(0xffffff,2.4);sun.position.set(3,6,5);scene.add(sun);
+const material=(c,em=0)=>new THREE.MeshStandardMaterial({color:c,roughness:.58,emissive:c,emissiveIntensity:em});
+const bone=material('#eee6cf'),ink=material('#1b1524'),navy=material('#152752'),gold=material('#ffc14d',.3),orange=material('#f98c24',.3),violet=material('#a95cff',.3),shoe=material('#50332c'),metal=material('#69748b');
+function mesh(p,g,m,x=0,y=0,z=0){const o=new THREE.Mesh(g,m);o.position.set(x,y,z);p.add(o);return o}
+function ball(p,r,m,x,y,z,sx=1,sy=1,sz=1){const o=mesh(p,new THREE.SphereGeometry(r,16,12),m,x,y,z);o.scale.set(sx,sy,sz);return o}
+function box(p,w,h,d,m,x=0,y=0,z=0){return mesh(p,new THREE.BoxGeometry(w,h,d),m,x,y,z)}
+function rod(p,a,b,r,m){const va=new THREE.Vector3(...a),vb=new THREE.Vector3(...b),dir=vb.clone().sub(va);const o=mesh(p,new THREE.CylinderGeometry(r,r,dir.length(),10),m,...va.add(vb).multiplyScalar(.5).toArray());o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.normalize());return o}
+// Grupo completo: se puede mover y escalar sobre la cámara.
+const actor=new THREE.Group();scene.add(actor);actor.position.set(0,-.15,0);
+const doll=new THREE.Group();actor.add(doll);
+const hips=new THREE.Group();hips.position.y=1.15;doll.add(hips);ball(hips,.28,bone,0,.08,0,1.3,.7,.6);
+const torso=new THREE.Group();torso.position.y=.28;hips.add(torso);box(torso,.78,.82,.25,navy,0,.45,0);box(torso,.09,.74,.28,ink,0,.45,.01);
+for(const y of [.30,.56])ball(torso,.045,bone,0,y,.17);rod(torso,[0,.83,0],[0,1.02,0],.07,bone);
+const head=new THREE.Group();head.position.set(0,1.22,.02);torso.add(head);ball(head,.47,bone,0,.27,0,1.05,1.06,.66);ball(head,.33,bone,0,-.03,.1,1,.47,.6);
+for(const x of [-.18,.18])ball(head,.13,ink,x,.29,.29,1,1,.28);ball(head,.07,ink,0,.07,.36,.7,1,.25);box(head,.49,.055,.04,ink,0,-.10,.32);
+for(let i=-2;i<=2;i++)box(head,.015,.09,.045,ink,i*.09,-.1,.35);
+function arm(x){const p=new THREE.Group();p.position.set(x*.43,.78,0);torso.add(p);rod(p,[0,0,0],[x*.08,-.38,.05],.075,bone);ball(p,.10,bone,x*.08,-.38,.05);rod(p,[x*.08,-.38,.05],[x*.08,-.75,.22],.06,bone);ball(p,.13,bone,x*.08,-.81,.24,1,.7,.4);for(let j=0;j<4;j++)rod(p,[x*.08+(j-1.5)*.035,-.83,.25],[x*.08+(j-1.5)*.055,-.99,.29],.018,bone);return p}
+const left=arm(-1),right=arm(1);
+function leg(x){const p=new THREE.Group();p.position.set(x*.2,0,0);hips.add(p);rod(p,[0,0,0],[x*.04,-.43,.02],.09,bone);ball(p,.09,bone,x*.04,-.43,.02);rod(p,[x*.04,-.43,.02],[x*.05,-.94,.06],.07,bone);ball(p,.12,shoe,x*.05,-1.02,.19,1.2,.55,2.1);return p}
+const ll=leg(-1),rr=leg(1);
+// Laptop delante de la calaverita.
+const laptop=new THREE.Group();actor.add(laptop);box(laptop,.72,.045,.46,metal);const screen=new THREE.Group();screen.position.set(0,.025,-.21);laptop.add(screen);box(screen,.72,.48,.035,metal,0,.24,0);box(screen,.62,.37,.04,new THREE.MeshBasicMaterial({color:0x59caff}),0,.25,.025);
+for(let r=0;r<3;r++)for(let c=0;c<8;c++)box(laptop,.065,.009,.045,ink,(c-3.5)*.082,.027,(r-1)*.105+.04);
+// Portal al final de la historia; queda detrás del personaje.
+const portal=new THREE.Group();actor.add(portal);portal.position.set(0,1.52,-.85);
+const outer=mesh(portal,new THREE.TorusGeometry(1.12,.075,12,72),gold),inner=mesh(portal,new THREE.TorusGeometry(.95,.035,10,72),violet);
+mesh(portal,new THREE.CircleGeometry(.91,64),new THREE.MeshBasicMaterial({color:0x8d4be3,transparent:true,opacity:.2,side:THREE.DoubleSide}),0,0,-.06);
+for(let i=0;i<20;i++){const a=i/20*Math.PI*2;ball(portal,.045,i%2?orange:gold,1.13*Math.cos(a),1.13*Math.sin(a),.02)}
+const flowers=new THREE.Group();actor.add(flowers);
+for(const x of [-1.15,-.75,.75,1.15]){for(let i=0;i<6;i++){const a=i*Math.PI/3;ball(flowers,.085,i%2?orange:gold,x+Math.cos(a)*.09,.16+Math.sin(a)*.09,.22)}ball(flowers,.065,gold,x,.16,.27)}
+const smooth=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x)};
+function reset(){doll.position.set(0,0,0);doll.scale.setScalar(1);hips.rotation.set(0,0,0);torso.rotation.set(0,0,0);head.rotation.set(0,0,0);left.rotation.set(0,0,0);right.rotation.set(0,0,0);ll.rotation.set(0,0,0);rr.rotation.set(0,0,0);laptop.visible=true;laptop.position.set(0,1.6,.58);laptop.rotation.set(0,0,0);portal.visible=false;flowers.visible=false}
+function story(t){reset();const s=performance.now()/1000;
+ if(t<5){status.textContent='💻 La calaverita está trabajando...';const a=Math.sin(t*17);torso.rotation.x=.12;head.rotation.x=-.12;left.rotation.x=-1.15+a*.12;right.rotation.x=-1.15-a*.12;left.rotation.z=-.12;right.rotation.z=.12}
+ else if(t<8){status.textContent='😤 ¡Se desesperó y aventó la laptop!';const d=t-5;if(d<1){const p=smooth(d);left.rotation.x=-1.1-p*.7;right.rotation.x=-1.1-p*.7;head.rotation.z=Math.sin(d*10)*.13;laptop.position.y=1.6+p*.45;laptop.rotation.x=-p*.5}else{const f=d-1;laptop.position.set(f*2.5,2.05+f*1.7-f*f*1.3,.58-f*.4);laptop.rotation.set(f*5,f*3,f*7);left.rotation.z=-.9;right.rotation.z=.9}}
+ else if(t<15){status.textContent='💃 ¡Ahora sí, a bailar!';laptop.visible=false;const d=t-8;doll.position.set(Math.sin(d*3)*.27,Math.abs(Math.sin(d*7))*.13,0);hips.rotation.y=Math.sin(d*3)*.27;torso.rotation.z=Math.sin(d*5)*.13;left.rotation.z=-.95+Math.sin(d*6)*.55;right.rotation.z=.95-Math.sin(d*6)*.55;ll.rotation.x=Math.sin(d*7)*.65;rr.rotation.x=-Math.sin(d*7)*.65;head.rotation.z=Math.sin(d*4)*.14}
+ else{status.textContent='✨ ¡La calaverita entra al portal mágico!';laptop.visible=false;portal.visible=true;flowers.visible=true;outer.rotation.z=s*.2;inner.rotation.z=-s*.25;const f=smooth((t-15)/5);doll.position.set(0,0,-f*.65);doll.scale.setScalar(1-f*.65);ll.rotation.x=Math.sin(s*9)*.5;rr.rotation.x=-Math.sin(s*9)*.5;left.rotation.x=Math.sin(s*9)*.2;right.rotation.x=-Math.sin(s*9)*.2}
+}
+startBtn.onclick=()=>{if(!ready){notice.textContent='Primero permite el acceso a la cámara.';notice.classList.remove('hidden');retryBtn.style.display='inline-block';return}active=true;started=performance.now();layer.style.display='block';startBtn.style.display='none';repeatBtn.style.display='inline-block';notice.classList.add('hidden')};
+repeatBtn.onclick=()=>{started=performance.now()};
+// Arrastrar para mover. Pellizcar para escalar.
+const touches=new Map();let previousCenter=null,previousDistance=null;
+function coords(){const a=[...touches.values()];if(!a.length)return null;const center={x:a.reduce((v,p)=>v+p.x,0)/a.length,y:a.reduce((v,p)=>v+p.y,0)/a.length};const distance=a.length>1?Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y):null;return {center,distance}}
+renderer.domElement.addEventListener('pointerdown',e=>{renderer.domElement.setPointerCapture(e.pointerId);touches.set(e.pointerId,{x:e.clientX,y:e.clientY});const a=coords();previousCenter=a.center;previousDistance=a.distance});
+renderer.domElement.addEventListener('pointermove',e=>{if(!touches.has(e.pointerId))return;touches.set(e.pointerId,{x:e.clientX,y:e.clientY});const a=coords();if(previousCenter){actor.position.x+=(a.center.x-previousCenter.x)/innerWidth*5;actor.position.y-=(a.center.y-previousCenter.y)/innerHeight*5}if(a.distance&&previousDistance){const k=a.distance/previousDistance;const next=Math.max(.35,Math.min(1.7,actor.scale.x*k));actor.scale.setScalar(next)}previousCenter=a.center;previousDistance=a.distance});
+function release(e){touches.delete(e.pointerId);const a=coords();previousCenter=a?.center||null;previousDistance=a?.distance||null}
+renderer.domElement.addEventListener('pointerup',release);renderer.domElement.addEventListener('pointercancel',release);
+function frame(now){requestAnimationFrame(frame);if(active){story(((now-started)/1000)%20);renderer.render(scene,camera)}}requestAnimationFrame(frame);
+window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+window.addEventListener('pagehide',()=>{if(stream)stream.getTracks().forEach(t=>t.stop())});
+cameraOn();
 </script>
-
 </body>
 </html>
