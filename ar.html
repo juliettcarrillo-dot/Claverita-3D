@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Portal magico del Dia de Muertos - AR</title>
+<script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+<script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+<style>body{margin:0;overflow:hidden;font-family:Arial,sans-serif}#guide{position:fixed;z-index:10;left:12px;right:12px;top:12px;background:#211331d9;color:white;border:1px solid #e9ac4a;border-radius:12px;padding:12px;text-align:center;font-size:14px;pointer-events:none}#status{color:#ffd57e;font-weight:bold;margin-top:5px}</style>
+</head>
+<body>
+<div id="guide">💀 PORTAL MAGICO DEL DIA DE MUERTOS<div id="status">Permite la camara y apunta al marcador HIRO impreso.</div></div>
+<a-scene embedded vr-mode-ui="enabled:false" renderer="logarithmicDepthBuffer:true;antialias:true" arjs="sourceType:webcam;debugUIEnabled:false;trackingMethod:best;">
+<a-marker preset="hiro" emitevents="true" id="hiro">
+<!-- El marcador es el centro de la escena. El portal se eleva por encima de el. -->
+<a-entity position="0 0.75 0">
+<a-torus radius="0.64" radius-tubular="0.055" rotation="0 0 0" material="color:#f9a528;metalness:0.35;roughness:0.3;emissive:#d97508;emissiveIntensity:0.55" animation="property:rotation;to:0 360 0;dur:13000;loop:true;easing:linear"></a-torus>
+<a-torus radius="0.51" radius-tubular="0.025" material="color:#c56eff;emissive:#8e3aff;emissiveIntensity:0.75" animation="property:rotation;to:0 -360 0;dur:9000;loop:true;easing:linear"></a-torus>
+<a-circle radius="0.46" material="color:#6921a5;opacity:0.3;transparent:true;side:double"></a-circle>
+<a-sphere radius="0.13" material="color:#fbc65b;emissive:#d98d15;emissiveIntensity:0.8;opacity:0.85;transparent:true" animation="property:scale;to:1.35 1.35 1.35;dir:alternate;dur:1300;loop:true"></a-sphere>
+<a-entity light="type:point;color:#ffae40;intensity:1.3;distance:3"></a-entity>
+</a-entity>
+<!-- Petalos / flores geometrizadas -->
+<a-entity position="-0.66 0.12 0.20"><a-sphere radius="0.09" color="#ffb000"></a-sphere><a-sphere position="0.10 0 0" radius="0.075" color="#ff7600"></a-sphere><a-sphere position="-0.07 0.07 0" radius="0.075" color="#ffc600"></a-sphere><a-sphere position="0 -0.09 0" radius="0.075" color="#ed6900"></a-sphere></a-entity>
+<a-entity position="0.65 0.12 0.20"><a-sphere radius="0.09" color="#ffb000"></a-sphere><a-sphere position="0.10 0 0" radius="0.075" color="#ff7600"></a-sphere><a-sphere position="-0.07 0.07 0" radius="0.075" color="#ffc600"></a-sphere><a-sphere position="0 -0.09 0" radius="0.075" color="#ed6900"></a-sphere></a-entity>
+<!-- Velas -->
+<a-cylinder position="-0.45 0.13 0.44" radius="0.055" height="0.25" color="#fff0ce"></a-cylinder><a-cone position="-0.45 0.31 0.44" radius-bottom="0.045" radius-top="0" height="0.13" color="#ffb400" material="emissive:#ff8000;emissiveIntensity:0.65" animation="property:scale;to:0.8 1.2 0.8;dir:alternate;dur:600;loop:true"></a-cone>
+<a-cylinder position="0.45 0.13 0.44" radius="0.055" height="0.25" color="#fff0ce"></a-cylinder><a-cone position="0.45 0.31 0.44" radius-bottom="0.045" radius-top="0" height="0.13" color="#ffb400" material="emissive:#ff8000;emissiveIntensity:0.65" animation="property:scale;to:0.8 1.2 0.8;dir:alternate;dur:750;loop:true"></a-cone>
+<!-- Particulas -->
+<a-sphere position="-0.35 0.6 0.3" radius="0.025" material="color:#ffd662;emissive:#ffac00" animation="property:position;to:-0.35 1.55 0.3;dur:3000;loop:true"></a-sphere>
+<a-sphere position="0.28 0.35 0.25" radius="0.023" material="color:#d994ff;emissive:#8a35ff" animation="property:position;to:0.28 1.6 0.25;dur:3600;loop:true"></a-sphere>
+<a-sphere position="0.1 0.1 -0.3" radius="0.027" material="color:#ffd662;emissive:#ffac00" animation="property:position;to:0.1 1.45 -0.3;dur:2600;loop:true"></a-sphere>
+</a-marker>
+<a-entity camera></a-entity>
+</a-scene>
+<script>window.addEventListener('load',()=>{const m=document.getElementById('hiro'),s=document.getElementById('status');m.addEventListener('markerFound',()=>s.textContent='¡Portal activado! Mueve lentamente tu celular.');m.addEventListener('markerLost',()=>s.textContent='Apunta nuevamente al marcador HIRO.');});</script>
+</body></html>
