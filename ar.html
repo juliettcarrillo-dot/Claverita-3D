@@ -1,36 +1,327 @@
+
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Portal magico del Dia de Muertos - AR</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Portal mágico del Día de Muertos - AR</title>
+
 <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
 <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-<style>body{margin:0;overflow:hidden;font-family:Arial,sans-serif}#guide{position:fixed;z-index:10;left:12px;right:12px;top:12px;background:#211331d9;color:white;border:1px solid #e9ac4a;border-radius:12px;padding:12px;text-align:center;font-size:14px;pointer-events:none}#status{color:#ffd57e;font-weight:bold;margin-top:5px}</style>
+
+<style>
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#080512;
+  font-family:Arial,sans-serif;
+}
+
+#guide{
+  position:fixed;
+  z-index:100;
+  top:calc(10px + env(safe-area-inset-top));
+  left:12px;
+  right:12px;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid #e9ac4a;
+  background:rgba(33,19,49,.88);
+  color:white;
+  text-align:center;
+  font-size:14px;
+  pointer-events:none;
+}
+
+#status{
+  color:#ffd57e;
+  font-size:13px;
+  margin-top:6px;
+  line-height:1.4;
+}
+
+#bottom{
+  position:fixed;
+  z-index:100;
+  bottom:calc(16px + env(safe-area-inset-bottom));
+  left:12px;
+  right:12px;
+  display:flex;
+  justify-content:center;
+  gap:10px;
+}
+
+#bottom a{
+  display:inline-block;
+  padding:11px 14px;
+  border-radius:12px;
+  background:#ffbd58;
+  color:#271331;
+  font-size:13px;
+  font-weight:bold;
+  text-decoration:none;
+}
+
+#bottom a.secondary{
+  background:#d9c2ff;
+}
+
+a-scene{
+  position:fixed!important;
+  inset:0;
+  width:100%!important;
+  height:100%!important;
+}
+
+/* Evitar que el video se estire o se deforme */
+video{
+  object-fit:cover;
+}
+
+</style>
 </head>
+
 <body>
-<div id="guide">💀 PORTAL MAGICO DEL DIA DE MUERTOS<div id="status">Permite la camara y apunta al marcador HIRO impreso.</div></div>
-<a-scene embedded vr-mode-ui="enabled:false" renderer="logarithmicDepthBuffer:true;antialias:true" arjs="sourceType:webcam;debugUIEnabled:false;trackingMethod:best;">
-<a-marker preset="hiro" emitevents="true" id="hiro">
-<!-- El marcador es el centro de la escena. El portal se eleva por encima de el. -->
-<a-entity position="0 0.75 0">
-<a-torus radius="0.64" radius-tubular="0.055" rotation="0 0 0" material="color:#f9a528;metalness:0.35;roughness:0.3;emissive:#d97508;emissiveIntensity:0.55" animation="property:rotation;to:0 360 0;dur:13000;loop:true;easing:linear"></a-torus>
-<a-torus radius="0.51" radius-tubular="0.025" material="color:#c56eff;emissive:#8e3aff;emissiveIntensity:0.75" animation="property:rotation;to:0 -360 0;dur:9000;loop:true;easing:linear"></a-torus>
-<a-circle radius="0.46" material="color:#6921a5;opacity:0.3;transparent:true;side:double"></a-circle>
-<a-sphere radius="0.13" material="color:#fbc65b;emissive:#d98d15;emissiveIntensity:0.8;opacity:0.85;transparent:true" animation="property:scale;to:1.35 1.35 1.35;dir:alternate;dur:1300;loop:true"></a-sphere>
-<a-entity light="type:point;color:#ffae40;intensity:1.3;distance:3"></a-entity>
-</a-entity>
-<!-- Petalos / flores geometrizadas -->
-<a-entity position="-0.66 0.12 0.20"><a-sphere radius="0.09" color="#ffb000"></a-sphere><a-sphere position="0.10 0 0" radius="0.075" color="#ff7600"></a-sphere><a-sphere position="-0.07 0.07 0" radius="0.075" color="#ffc600"></a-sphere><a-sphere position="0 -0.09 0" radius="0.075" color="#ed6900"></a-sphere></a-entity>
-<a-entity position="0.65 0.12 0.20"><a-sphere radius="0.09" color="#ffb000"></a-sphere><a-sphere position="0.10 0 0" radius="0.075" color="#ff7600"></a-sphere><a-sphere position="-0.07 0.07 0" radius="0.075" color="#ffc600"></a-sphere><a-sphere position="0 -0.09 0" radius="0.075" color="#ed6900"></a-sphere></a-entity>
-<!-- Velas -->
-<a-cylinder position="-0.45 0.13 0.44" radius="0.055" height="0.25" color="#fff0ce"></a-cylinder><a-cone position="-0.45 0.31 0.44" radius-bottom="0.045" radius-top="0" height="0.13" color="#ffb400" material="emissive:#ff8000;emissiveIntensity:0.65" animation="property:scale;to:0.8 1.2 0.8;dir:alternate;dur:600;loop:true"></a-cone>
-<a-cylinder position="0.45 0.13 0.44" radius="0.055" height="0.25" color="#fff0ce"></a-cylinder><a-cone position="0.45 0.31 0.44" radius-bottom="0.045" radius-top="0" height="0.13" color="#ffb400" material="emissive:#ff8000;emissiveIntensity:0.65" animation="property:scale;to:0.8 1.2 0.8;dir:alternate;dur:750;loop:true"></a-cone>
-<!-- Particulas -->
-<a-sphere position="-0.35 0.6 0.3" radius="0.025" material="color:#ffd662;emissive:#ffac00" animation="property:position;to:-0.35 1.55 0.3;dur:3000;loop:true"></a-sphere>
-<a-sphere position="0.28 0.35 0.25" radius="0.023" material="color:#d994ff;emissive:#8a35ff" animation="property:position;to:0.28 1.6 0.25;dur:3600;loop:true"></a-sphere>
-<a-sphere position="0.1 0.1 -0.3" radius="0.027" material="color:#ffd662;emissive:#ffac00" animation="property:position;to:0.1 1.45 -0.3;dur:2600;loop:true"></a-sphere>
-</a-marker>
-<a-entity camera></a-entity>
+
+<div id="guide">
+  💀 ✨ PORTAL MÁGICO DEL DÍA DE MUERTOS
+  <div id="status">
+    Iniciando cámara... Permite el acceso cuando se solicite.
+  </div>
+</div>
+
+<div id="bottom">
+  <a href="index.html">⌂ Inicio</a>
+  <a class="secondary"
+     href="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/HIRO.jpg"
+     target="_blank"
+     rel="noopener">
+     ▣ Ver marcador HIRO
+  </a>
+</div>
+
+<a-scene
+  embedded
+  vr-mode-ui="enabled:false"
+  renderer="antialias:true;alpha:true;precision:mediump"
+  arjs="sourceType:webcam;trackingMethod:best;debugUIEnabled:false;">
+
+  <a-marker
+    id="hiro"
+    preset="hiro"
+    emitevents="true"
+    smooth="true"
+    smoothCount="8"
+    smoothTolerance="0.01"
+    smoothThreshold="4">
+
+    <!--
+      El marcador HIRO es el punto de referencia.
+      El portal completo se escala al 55%.
+      Su parte inferior queda cerca del marcador.
+    -->
+
+    <a-entity
+      id="portal"
+      position="0 0.06 0"
+      scale="0.55 0.55 0.55">
+
+      <!-- Portal vertical: se levanta sobre el marcador -->
+      <a-entity position="0 0.83 0">
+
+        <!-- Aro dorado -->
+        <a-torus
+          radius="0.66"
+          radius-tubular="0.055"
+          material="color:#ffbd45;
+                    metalness:0.25;
+                    roughness:0.35;
+                    emissive:#e68b12;
+                    emissiveIntensity:0.45"
+          animation="property:rotation;
+                     to:0 0 360;
+                     dur:14000;
+                     loop:true;
+                     easing:linear">
+        </a-torus>
+
+        <!-- Aro violeta -->
+        <a-torus
+          radius="0.53"
+          radius-tubular="0.025"
+          material="color:#c66bff;
+                    emissive:#8e3aff;
+                    emissiveIntensity:0.65"
+          animation="property:rotation;
+                     to:0 0 -360;
+                     dur:9500;
+                     loop:true;
+                     easing:linear">
+        </a-torus>
+
+        <!-- Interior mágico -->
+        <a-circle
+          radius="0.48"
+          position="0 0 -0.025"
+          material="color:#7033b9;
+                    opacity:0.45;
+                    transparent:true;
+                    side:double">
+        </a-circle>
+
+        <!-- Centro luminoso -->
+        <a-sphere
+          radius="0.10"
+          position="0 0 0.05"
+          material="color:#ffdd79;
+                    emissive:#ffc13a;
+                    emissiveIntensity:0.65;
+                    opacity:0.75;
+                    transparent:true"
+          animation="property:scale;
+                     to:1.35 1.35 1.35;
+                     dir:alternate;
+                     dur:1500;
+                     loop:true">
+        </a-sphere>
+
+        <a-entity
+          light="type:point;
+                 color:#ffae40;
+                 intensity:1.2;
+                 distance:3">
+        </a-entity>
+
+      </a-entity>
+
+      <!-- Flores de cempasúchil -->
+      <a-entity position="-0.65 0.14 0.20">
+        <a-sphere radius="0.09" color="#ffb000"></a-sphere>
+        <a-sphere position="0.10 0 0" radius="0.075" color="#ff7600"></a-sphere>
+        <a-sphere position="-0.07 0.07 0" radius="0.075" color="#ffc600"></a-sphere>
+        <a-sphere position="0 -0.09 0" radius="0.075" color="#ed6900"></a-sphere>
+      </a-entity>
+
+      <a-entity position="0.65 0.14 0.20">
+        <a-sphere radius="0.09" color="#ffb000"></a-sphere>
+        <a-sphere position="0.10 0 0" radius="0.075" color="#ff7600"></a-sphere>
+        <a-sphere position="-0.07 0.07 0" radius="0.075" color="#ffc600"></a-sphere>
+        <a-sphere position="0 -0.09 0" radius="0.075" color="#ed6900"></a-sphere>
+      </a-entity>
+
+      <!-- Velas -->
+      <a-cylinder
+        position="-0.43 0.13 0.42"
+        radius="0.055"
+        height="0.25"
+        color="#fff0ce">
+      </a-cylinder>
+
+      <a-cone
+        position="-0.43 0.31 0.42"
+        radius-bottom="0.045"
+        radius-top="0"
+        height="0.13"
+        material="color:#ffb400;
+                  emissive:#ff8000;
+                  emissiveIntensity:0.65"
+        animation="property:scale;
+                   to:0.8 1.2 0.8;
+                   dir:alternate;
+                   dur:600;
+                   loop:true">
+      </a-cone>
+
+      <a-cylinder
+        position="0.43 0.13 0.42"
+        radius="0.055"
+        height="0.25"
+        color="#fff0ce">
+      </a-cylinder>
+
+      <a-cone
+        position="0.43 0.31 0.42"
+        radius-bottom="0.045"
+        radius-top="0"
+        height="0.13"
+        material="color:#ffb400;
+                  emissive:#ff8000;
+                  emissiveIntensity:0.65"
+        animation="property:scale;
+                   to:0.8 1.2 0.8;
+                   dir:alternate;
+                   dur:750;
+                   loop:true">
+      </a-cone>
+
+      <!-- Partículas mágicas -->
+      <a-sphere
+        position="-0.35 0.6 0.3"
+        radius="0.025"
+        material="color:#ffd662;emissive:#ffac00"
+        animation="property:position;
+                   to:-0.35 1.55 0.3;
+                   dur:3000;
+                   loop:true">
+      </a-sphere>
+
+      <a-sphere
+        position="0.28 0.35 0.25"
+        radius="0.023"
+        material="color:#d994ff;emissive:#8a35ff"
+        animation="property:position;
+                   to:0.28 1.6 0.25;
+                   dur:3600;
+                   loop:true">
+      </a-sphere>
+
+      <a-sphere
+        position="0.1 0.1 -0.3"
+        radius="0.027"
+        material="color:#ffd662;emissive:#ffac00"
+        animation="property:position;
+                   to:0.1 1.45 -0.3;
+                   dur:2600;
+                   loop:true">
+      </a-sphere>
+
+    </a-entity>
+
+  </a-marker>
+
+  <a-entity camera></a-entity>
+
 </a-scene>
-<script>window.addEventListener('load',()=>{const m=document.getElementById('hiro'),s=document.getElementById('status');m.addEventListener('markerFound',()=>s.textContent='¡Portal activado! Mueve lentamente tu celular.');m.addEventListener('markerLost',()=>s.textContent='Apunta nuevamente al marcador HIRO.');});</script>
-</body></html>
+
+<script>
+const statusText=document.getElementById('status');
+const marker=document.getElementById('hiro');
+const sceneEl=document.querySelector('a-scene');
+
+marker.addEventListener('markerFound',()=>{
+  statusText.textContent=
+    '✨ ¡Portal activado! Muévete despacio alrededor del marcador.';
+});
+
+marker.addEventListener('markerLost',()=>{
+  statusText.textContent=
+    '🔎 Marcador perdido. Apunta nuevamente al HIRO.';
+});
+
+sceneEl.addEventListener('loaded',()=>{
+  statusText.textContent=
+    '📷 Apunta la cámara al marcador HIRO para abrir el portal.';
+});
+
+window.addEventListener('error',()=>{
+  statusText.textContent=
+    '⚠️ Ocurrió un problema. Comprueba el permiso de cámara y recarga.';
+});
+</script>
+
+</body>
+</html>
