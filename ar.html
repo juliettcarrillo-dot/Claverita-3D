@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<title>Don Manguito: El bug del más allá</title>
+<title>El Tres Mangas: El bug del más allá</title>
 <style>
 *{box-sizing:border-box}
 html,body{
@@ -117,7 +117,7 @@ button,a{
 <div id="three"></div>
 
 <div id="header">
-  <h1>💀 Don Manguito: El bug del más allá</h1>
+  <h1>💀 El Tres Mangas: El bug del más allá</h1>
   <div id="status">Preparando cámara...</div>
 </div>
 
@@ -131,7 +131,7 @@ button,a{
 </div>
 
 <div id="help">
-  Arrastra a Don Manguito para moverlo · Pellizca para cambiar su tamaño
+  Arrastra a El Tres Mangas para moverlo · Pellizca para cambiar su tamaño
 </div>
 
 <div id="actions">
@@ -184,7 +184,7 @@ async function cameraOn(){
     await video.play();
     ready=true;
     notice.classList.add('hidden');
-    status.textContent='📷 Cámara lista. ¡Activa la historia de Don Manguito!';
+    status.textContent='📷 Cámara lista. ¡Activa la historia de El Tres Mangas!';
   }catch(e){
     ready=false;
     notice.textContent='⚠️ No se pudo abrir la cámara: '+
@@ -266,7 +266,7 @@ function rod(p,a,b,r,m){
   return o;
 }
 
-/* DON MANGUITO */
+/* El Tres Mangas */
 const actor=new THREE.Group();
 scene.add(actor);
 actor.position.set(0,-.15,0);
@@ -471,7 +471,7 @@ function story(t){
   if(t<5){
     hideBanner();
     status.textContent=
-      '💻 Don Manguito: ¡Ya quedó! En mi máquina sí funciona.';
+      '💻 El Tres Mangas: ¡Ya quedó! En mi máquina sí funciona.';
 
     const a=Math.sin(t*17);
     torso.rotation.x=.12;
@@ -491,7 +491,7 @@ function story(t){
     );
 
     status.textContent=
-      '😱 ¡Don Manguito acaba de ver a la jefa de Diseño!';
+      '😱 ¡El Tres Mangas acaba de ver a la jefa de Diseño!';
 
     const d=t-5;
     head.rotation.z=Math.sin(d*24)*.18;
@@ -529,7 +529,7 @@ function story(t){
   else if(t<15){
     hideBanner();
     status.textContent=
-      '💃 Don Manguito baila para disimular el regaño.';
+      '💃 El Tres Mangas baila para disimular el regaño.';
 
     laptop.visible=false;
     const d=t-9;
@@ -557,7 +557,7 @@ function story(t){
     );
 
     status.textContent=
-      '✨ Don Manguito intenta escapar al más allá.';
+      '✨ El Tres Mangas intenta escapar al más allá.';
 
     laptop.visible=false;
     portal.visible=true;
