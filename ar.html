@@ -4,100 +4,644 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<title>Mi calaverita cobra vida en tu cámara</title>
+<title>Calaverita mágica — reconocimiento automático</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#130c22;color:white;font-family:system-ui,Arial,sans-serif}
-#camera,#three{position:fixed;inset:0;width:100%;height:100%}#camera{object-fit:cover;background:#130c22;z-index:1}#three{z-index:2;touch-action:none;display:none}
-#header{position:fixed;z-index:5;top:calc(10px + env(safe-area-inset-top));left:10px;right:10px;text-align:center;background:#211431d9;border:1px solid #ffbc5c;border-radius:14px;padding:9px 12px;pointer-events:none}
-h1{font-size:16px;color:#ffd47e;margin:0 0 4px}#status{font-size:12px;line-height:1.4}
-#actions{position:fixed;z-index:6;bottom:calc(12px + env(safe-area-inset-bottom));left:8px;right:8px;display:flex;justify-content:center;flex-wrap:wrap;gap:7px}
-button,a{border:0;border-radius:11px;padding:11px 12px;font:700 13px system-ui;text-decoration:none;cursor:pointer}#start,#repeat{background:#ffb94d;color:#25142b}#repeat{display:none}#home{background:#d9bdff;color:#281338}#retry{display:none;background:#ffdca0;color:#29172f}
-#help{position:fixed;z-index:4;bottom:calc(73px + env(safe-area-inset-bottom));left:12px;right:12px;text-align:center;font-size:12px;text-shadow:0 2px 5px black;pointer-events:none}
-#notice{position:fixed;z-index:4;top:50%;left:50%;transform:translate(-50%,-50%);width:min(88vw,360px);padding:18px;background:#211431eb;border:1px solid #ffbc5c;border-radius:16px;text-align:center;font-size:14px;line-height:1.5}
-#notice.hidden{display:none}
+*{box-sizing:border-box}
+html,body{
+  margin:0;width:100%;height:100%;overflow:hidden;
+  background:#120a20;color:white;font-family:system-ui,Arial,sans-serif
+}
+#cam,#overlay{
+  position:fixed;inset:0;width:100%;height:100%
+}
+#cam{object-fit:cover}
+#overlay{pointer-events:none}
+#info{
+  position:fixed;z-index:3;
+  top:calc(10px + env(safe-area-inset-top));
+  left:10px;right:10px;
+  background:#251635e8;
+  border:1px solid #ffbd60;
+  border-radius:12px;
+  padding:10px;text-align:center;
+  line-height:1.4;font-size:13px
+}
+#info strong{color:#ffd27d}
+#controls{
+  position:fixed;z-index:3;
+  bottom:calc(12px + env(safe-area-inset-bottom));
+  left:8px;right:8px;
+  display:flex;justify-content:center;
+  gap:9px;flex-wrap:wrap
+}
+button,a{
+  border:0;border-radius:12px;padding:11px 14px;
+  font:700 13px system-ui;text-decoration:none;
+  background:#ffbf58;color:#26152b
+}
+a{background:#dfc4ff}
+#replay{display:none}
+#loading{
+  position:fixed;z-index:2;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:min(90%,350px);text-align:center;
+  background:#28163eea;padding:20px;
+  border-radius:16px;line-height:1.5
+}
 </style>
 </head>
 <body>
-<video id="camera" autoplay muted playsinline></video>
-<div id="three"></div>
-<div id="header"><h1>💀✨ Mi calaverita cobra vida</h1><div id="status">Preparando cámara...</div></div>
-<div id="notice">📷 Permite el acceso a la cámara para comenzar.</div>
-<div id="help">Arrastra la calaverita para moverla · Pellizca para cambiar su tamaño</div>
-<div id="actions"><button id="start">✨ Activar magia</button><button id="repeat">↻ Repetir historia</button><button id="retry">📷 Reintentar cámara</button><a id="home" href="index.html">⌂ Inicio</a></div>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js"}}</script>
-<script type="module">
-import * as THREE from 'three';
-const video=document.getElementById('camera'), layer=document.getElementById('three');
-const status=document.getElementById('status'), notice=document.getElementById('notice');
-const startBtn=document.getElementById('start'),repeatBtn=document.getElementById('repeat'),retryBtn=document.getElementById('retry');
-let stream=null,ready=false,active=false,started=0;
-async function cameraOn(){
-  retryBtn.style.display='none';notice.classList.remove('hidden');notice.textContent='📷 Solicitando acceso a la cámara...';
+
+<video id="cam" autoplay muted playsinline></video>
+<canvas id="overlay"></canvas>
+
+<div id="info">
+  <strong>💀 Mi calaverita cobra vida</strong>
+  <div id="status">Iniciando reconocimiento...</div>
+</div>
+
+<div id="loading">
+  📷 Permite la cámara y apunta de frente a tu calaverita física.
+</div>
+
+<div id="controls">
+  <button id="replay">↻ Repetir historia</button>
+  <a href="index.html">⌂ Inicio</a>
+</div>
+
+<script>
+const video=document.getElementById('cam');
+const canvas=document.getElementById('overlay');
+const ctx=canvas.getContext('2d');
+const status=document.getElementById('status');
+const loading=document.getElementById('loading');
+const replay=document.getElementById('replay');
+
+let cvReady=false;
+let camReady=false;
+let ref=null;
+let detector=null;
+let matcher=null;
+let gray=null;
+let sceneKey=null;
+let sceneDesc=null;
+let mask=null;
+let refKey=null;
+let refDesc=null;
+let maskEmpty=null;
+let tracking=null;
+let confirmed=0;
+let missing=0;
+let storyStart=0;
+let playing=false;
+let lastScan=0;
+let scanBusy=false;
+
+const scanCanvas=document.createElement('canvas');
+scanCanvas.width=640;
+scanCanvas.height=480;
+const scanCtx=scanCanvas.getContext('2d',{willReadFrequently:true});
+
+function say(t){
+  status.textContent=t;
+}
+
+function showError(t){
+  loading.style.display='block';
+  loading.textContent=t;
+  say('No se pudo iniciar. Revisa el mensaje central.');
+}
+
+function loadScript(src){
+  return new Promise((resolve,reject)=>{
+    const s=document.createElement('script');
+    s.src=src;
+    s.async=true;
+    s.onload=resolve;
+    s.onerror=()=>reject(new Error('No se pudo cargar OpenCV'));
+    document.head.appendChild(s);
+  });
+}
+
+async function waitCV(){
+  await loadScript('https://docs.opencv.org/4.x/opencv.js');
+  let tries=0;
+  while((!window.cv||!cv.Mat||!cv.ORB)&&tries++<120){
+    await new Promise(r=>setTimeout(r,150));
+  }
+  if(!window.cv?.ORB){
+    throw new Error('OpenCV no terminó de cargar o no incluye ORB');
+  }
+  cvReady=true;
+}
+
+async function loadReference(){
+  const image=new Image();
+  image.src='calaverita-referencia.png?v=1';
+  await image.decode();
+
+  const tmp=document.createElement('canvas');
+  const f=Math.min(1,680/image.height);
+  tmp.width=Math.round(image.width*f);
+  tmp.height=Math.round(image.height*f);
+
+  const c=tmp.getContext('2d');
+  c.drawImage(image,0,0,tmp.width,tmp.height);
+
+  const rgba=cv.imread(tmp);
+  const channels=new cv.MatVector();
+  cv.split(rgba,channels);
+
+  mask=channels.get(3).clone();
+
+  const rgb=new cv.Mat();
+  cv.cvtColor(rgba,rgb,cv.COLOR_RGBA2GRAY);
+
+  refKey=new cv.KeyPointVector();
+  refDesc=new cv.Mat();
+  detector=new cv.ORB(1200);
+  matcher=new cv.BFMatcher(cv.NORM_HAMMING,false);
+
+  detector.detectAndCompute(rgb,mask,refKey,refDesc);
+
+  ref={w:tmp.width,h:tmp.height};
+
+  for(let i=0;i<channels.size();i++){
+    channels.get(i).delete();
+  }
+
+  channels.delete();
+  rgba.delete();
+  rgb.delete();
+
+  if(refDesc.empty()||refKey.size()<18){
+    throw new Error('No se detectaron suficientes detalles en la imagen');
+  }
+}
+
+async function init(){
   try{
-    if(!navigator.mediaDevices?.getUserMedia)throw new Error('Este navegador no permite usar la cámara.');
-    if(stream)stream.getTracks().forEach(t=>t.stop());
-    stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});
-    video.srcObject=stream;await video.play();ready=true;notice.classList.add('hidden');status.textContent='📷 Cámara lista. Enfoca tu calaverita y toca Activar magia.';
-  }catch(e){ready=false;notice.textContent='⚠️ No se pudo abrir la cámara: '+(e.name==='NotAllowedError'?'revisa los permisos del sitio.':e.message);retryBtn.style.display='inline-block';status.textContent='Cámara no disponible';}
+    if(!navigator.mediaDevices?.getUserMedia){
+      throw new Error('La cámara requiere HTTPS y un navegador compatible');
+    }
+
+    const stream=await navigator.mediaDevices.getUserMedia({
+      video:{
+        facingMode:{ideal:'environment'},
+        width:{ideal:1280},
+        height:{ideal:720}
+      },
+      audio:false
+    });
+
+    video.srcObject=stream;
+    await video.play();
+
+    camReady=true;
+    say('Cargando reconocimiento visual...');
+
+    await waitCV();
+    await loadReference();
+
+    sceneKey=new cv.KeyPointVector();
+    sceneDesc=new cv.Mat();
+    gray=new cv.Mat();
+    maskEmpty=new cv.Mat();
+
+    loading.style.display='none';
+    say('Apunta de frente a tu calaverita. La magia iniciará sola.');
+
+    requestAnimationFrame(frame);
+  }catch(e){
+    showError(
+      '⚠️ '+e.message+
+      '. Comprueba los permisos, la conexión y que calaverita-referencia.png esté junto a ar.html.'
+    );
+  }
 }
-retryBtn.onclick=cameraOn;
-const scene=new THREE.Scene();
-const camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,.1,100);
-camera.position.set(0,1.5,7.7);camera.lookAt(0,1.5,0);
-const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.setClearColor(0x000000,0);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.domElement.style.cssText='width:100%;height:100%;display:block;touch-action:none';layer.appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xffffff,0x76559c,2.6));
-const sun=new THREE.DirectionalLight(0xffffff,2.4);sun.position.set(3,6,5);scene.add(sun);
-const material=(c,em=0)=>new THREE.MeshStandardMaterial({color:c,roughness:.58,emissive:c,emissiveIntensity:em});
-const bone=material('#eee6cf'),ink=material('#1b1524'),navy=material('#152752'),gold=material('#ffc14d',.3),orange=material('#f98c24',.3),violet=material('#a95cff',.3),shoe=material('#50332c'),metal=material('#69748b');
-function mesh(p,g,m,x=0,y=0,z=0){const o=new THREE.Mesh(g,m);o.position.set(x,y,z);p.add(o);return o}
-function ball(p,r,m,x,y,z,sx=1,sy=1,sz=1){const o=mesh(p,new THREE.SphereGeometry(r,16,12),m,x,y,z);o.scale.set(sx,sy,sz);return o}
-function box(p,w,h,d,m,x=0,y=0,z=0){return mesh(p,new THREE.BoxGeometry(w,h,d),m,x,y,z)}
-function rod(p,a,b,r,m){const va=new THREE.Vector3(...a),vb=new THREE.Vector3(...b),dir=vb.clone().sub(va);const o=mesh(p,new THREE.CylinderGeometry(r,r,dir.length(),10),m,...va.add(vb).multiplyScalar(.5).toArray());o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.normalize());return o}
-// Grupo completo: se puede mover y escalar sobre la cámara.
-const actor=new THREE.Group();scene.add(actor);actor.position.set(0,-.15,0);
-const doll=new THREE.Group();actor.add(doll);
-const hips=new THREE.Group();hips.position.y=1.15;doll.add(hips);ball(hips,.28,bone,0,.08,0,1.3,.7,.6);
-const torso=new THREE.Group();torso.position.y=.28;hips.add(torso);box(torso,.78,.82,.25,navy,0,.45,0);box(torso,.09,.74,.28,ink,0,.45,.01);
-for(const y of [.30,.56])ball(torso,.045,bone,0,y,.17);rod(torso,[0,.83,0],[0,1.02,0],.07,bone);
-const head=new THREE.Group();head.position.set(0,1.22,.02);torso.add(head);ball(head,.47,bone,0,.27,0,1.05,1.06,.66);ball(head,.33,bone,0,-.03,.1,1,.47,.6);
-for(const x of [-.18,.18])ball(head,.13,ink,x,.29,.29,1,1,.28);ball(head,.07,ink,0,.07,.36,.7,1,.25);box(head,.49,.055,.04,ink,0,-.10,.32);
-for(let i=-2;i<=2;i++)box(head,.015,.09,.045,ink,i*.09,-.1,.35);
-function arm(x){const p=new THREE.Group();p.position.set(x*.43,.78,0);torso.add(p);rod(p,[0,0,0],[x*.08,-.38,.05],.075,bone);ball(p,.10,bone,x*.08,-.38,.05);rod(p,[x*.08,-.38,.05],[x*.08,-.75,.22],.06,bone);ball(p,.13,bone,x*.08,-.81,.24,1,.7,.4);for(let j=0;j<4;j++)rod(p,[x*.08+(j-1.5)*.035,-.83,.25],[x*.08+(j-1.5)*.055,-.99,.29],.018,bone);return p}
-const left=arm(-1),right=arm(1);
-function leg(x){const p=new THREE.Group();p.position.set(x*.2,0,0);hips.add(p);rod(p,[0,0,0],[x*.04,-.43,.02],.09,bone);ball(p,.09,bone,x*.04,-.43,.02);rod(p,[x*.04,-.43,.02],[x*.05,-.94,.06],.07,bone);ball(p,.12,shoe,x*.05,-1.02,.19,1.2,.55,2.1);return p}
-const ll=leg(-1),rr=leg(1);
-// Laptop delante de la calaverita.
-const laptop=new THREE.Group();actor.add(laptop);box(laptop,.72,.045,.46,metal);const screen=new THREE.Group();screen.position.set(0,.025,-.21);laptop.add(screen);box(screen,.72,.48,.035,metal,0,.24,0);box(screen,.62,.37,.04,new THREE.MeshBasicMaterial({color:0x59caff}),0,.25,.025);
-for(let r=0;r<3;r++)for(let c=0;c<8;c++)box(laptop,.065,.009,.045,ink,(c-3.5)*.082,.027,(r-1)*.105+.04);
-// Portal al final de la historia; queda detrás del personaje.
-const portal=new THREE.Group();actor.add(portal);portal.position.set(0,1.52,-.85);
-const outer=mesh(portal,new THREE.TorusGeometry(1.12,.075,12,72),gold),inner=mesh(portal,new THREE.TorusGeometry(.95,.035,10,72),violet);
-mesh(portal,new THREE.CircleGeometry(.91,64),new THREE.MeshBasicMaterial({color:0x8d4be3,transparent:true,opacity:.2,side:THREE.DoubleSide}),0,0,-.06);
-for(let i=0;i<20;i++){const a=i/20*Math.PI*2;ball(portal,.045,i%2?orange:gold,1.13*Math.cos(a),1.13*Math.sin(a),.02)}
-const flowers=new THREE.Group();actor.add(flowers);
-for(const x of [-1.15,-.75,.75,1.15]){for(let i=0;i<6;i++){const a=i*Math.PI/3;ball(flowers,.085,i%2?orange:gold,x+Math.cos(a)*.09,.16+Math.sin(a)*.09,.22)}ball(flowers,.065,gold,x,.16,.27)}
-const smooth=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x)};
-function reset(){doll.position.set(0,0,0);doll.scale.setScalar(1);hips.rotation.set(0,0,0);torso.rotation.set(0,0,0);head.rotation.set(0,0,0);left.rotation.set(0,0,0);right.rotation.set(0,0,0);ll.rotation.set(0,0,0);rr.rotation.set(0,0,0);laptop.visible=true;laptop.position.set(0,1.6,.58);laptop.rotation.set(0,0,0);portal.visible=false;flowers.visible=false}
-function story(t){reset();const s=performance.now()/1000;
- if(t<5){status.textContent='💻 La calaverita está trabajando...';const a=Math.sin(t*17);torso.rotation.x=.12;head.rotation.x=-.12;left.rotation.x=-1.15+a*.12;right.rotation.x=-1.15-a*.12;left.rotation.z=-.12;right.rotation.z=.12}
- else if(t<8){status.textContent='😤 ¡Se desesperó y aventó la laptop!';const d=t-5;if(d<1){const p=smooth(d);left.rotation.x=-1.1-p*.7;right.rotation.x=-1.1-p*.7;head.rotation.z=Math.sin(d*10)*.13;laptop.position.y=1.6+p*.45;laptop.rotation.x=-p*.5}else{const f=d-1;laptop.position.set(f*2.5,2.05+f*1.7-f*f*1.3,.58-f*.4);laptop.rotation.set(f*5,f*3,f*7);left.rotation.z=-.9;right.rotation.z=.9}}
- else if(t<15){status.textContent='💃 ¡Ahora sí, a bailar!';laptop.visible=false;const d=t-8;doll.position.set(Math.sin(d*3)*.27,Math.abs(Math.sin(d*7))*.13,0);hips.rotation.y=Math.sin(d*3)*.27;torso.rotation.z=Math.sin(d*5)*.13;left.rotation.z=-.95+Math.sin(d*6)*.55;right.rotation.z=.95-Math.sin(d*6)*.55;ll.rotation.x=Math.sin(d*7)*.65;rr.rotation.x=-Math.sin(d*7)*.65;head.rotation.z=Math.sin(d*4)*.14}
- else{status.textContent='✨ ¡La calaverita entra al portal mágico!';laptop.visible=false;portal.visible=true;flowers.visible=true;outer.rotation.z=s*.2;inner.rotation.z=-s*.25;const f=smooth((t-15)/5);doll.position.set(0,0,-f*.65);doll.scale.setScalar(1-f*.65);ll.rotation.x=Math.sin(s*9)*.5;rr.rotation.x=-Math.sin(s*9)*.5;left.rotation.x=Math.sin(s*9)*.2;right.rotation.x=-Math.sin(s*9)*.2}
+
+function lost(){
+  confirmed=0;
+  missing++;
+
+  if(missing>7){
+    tracking=null;
+    if(!playing){
+      say('Buscando tu calaverita... Acércala y enfócala de frente.');
+    }
+  }
 }
-startBtn.onclick=()=>{if(!ready){notice.textContent='Primero permite el acceso a la cámara.';notice.classList.remove('hidden');retryBtn.style.display='inline-block';return}active=true;started=performance.now();layer.style.display='block';startBtn.style.display='none';repeatBtn.style.display='inline-block';notice.classList.add('hidden')};
-repeatBtn.onclick=()=>{started=performance.now()};
-// Arrastrar para mover. Pellizcar para escalar.
-const touches=new Map();let previousCenter=null,previousDistance=null;
-function coords(){const a=[...touches.values()];if(!a.length)return null;const center={x:a.reduce((v,p)=>v+p.x,0)/a.length,y:a.reduce((v,p)=>v+p.y,0)/a.length};const distance=a.length>1?Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y):null;return {center,distance}}
-renderer.domElement.addEventListener('pointerdown',e=>{renderer.domElement.setPointerCapture(e.pointerId);touches.set(e.pointerId,{x:e.clientX,y:e.clientY});const a=coords();previousCenter=a.center;previousDistance=a.distance});
-renderer.domElement.addEventListener('pointermove',e=>{if(!touches.has(e.pointerId))return;touches.set(e.pointerId,{x:e.clientX,y:e.clientY});const a=coords();if(previousCenter){actor.position.x+=(a.center.x-previousCenter.x)/innerWidth*5;actor.position.y-=(a.center.y-previousCenter.y)/innerHeight*5}if(a.distance&&previousDistance){const k=a.distance/previousDistance;const next=Math.max(.35,Math.min(1.7,actor.scale.x*k));actor.scale.setScalar(next)}previousCenter=a.center;previousDistance=a.distance});
-function release(e){touches.delete(e.pointerId);const a=coords();previousCenter=a?.center||null;previousDistance=a?.distance||null}
-renderer.domElement.addEventListener('pointerup',release);renderer.domElement.addEventListener('pointercancel',release);
-function frame(now){requestAnimationFrame(frame);if(active){story(((now-started)/1000)%20);renderer.render(scene,camera)}}requestAnimationFrame(frame);
-window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-window.addEventListener('pagehide',()=>{if(stream)stream.getTracks().forEach(t=>t.stop())});
-cameraOn();
+
+function detect(){
+  if(!camReady||!cvReady||video.readyState<2||scanBusy)return;
+
+  scanBusy=true;
+
+  let matches=null;
+  let src=null;
+  let dst=null;
+  let H=null;
+  let projected=null;
+  let pts=null;
+
+  try{
+    const vw=video.videoWidth;
+    const vh=video.videoHeight;
+    if(!vw||!vh)return;
+
+    scanCtx.drawImage(video,0,0,640,480);
+
+    const rgba=cv.imread(scanCanvas);
+    cv.cvtColor(rgba,gray,cv.COLOR_RGBA2GRAY);
+    rgba.delete();
+
+    detector.detectAndCompute(
+      gray,maskEmpty,sceneKey,sceneDesc
+    );
+
+    if(sceneDesc.empty()||sceneKey.size()<12){
+      lost();
+      return;
+    }
+
+    matches=new cv.DMatchVectorVector();
+    matcher.knnMatch(refDesc,sceneDesc,matches,2);
+
+    const a=[];
+    const b=[];
+
+    for(let i=0;i<matches.size();i++){
+      const pair=matches.get(i);
+
+      if(pair.size()===2){
+        const m=pair.get(0);
+        const n=pair.get(1);
+
+        if(m.distance<Math.min(65,n.distance*.74)){
+          const p=refKey.get(m.queryIdx).pt;
+          const q=sceneKey.get(m.trainIdx).pt;
+
+          a.push(p.x,p.y);
+          b.push(q.x,q.y);
+        }
+      }
+
+      pair.delete();
+    }
+
+    if(a.length<28){
+      lost();
+      return;
+    }
+
+    src=cv.matFromArray(
+      a.length/2,1,cv.CV_32FC2,a
+    );
+
+    dst=cv.matFromArray(
+      b.length/2,1,cv.CV_32FC2,b
+    );
+
+    const inliers=new cv.Mat();
+    H=cv.findHomography(src,dst,cv.RANSAC,4,inliers);
+
+    let count=0;
+
+    for(let i=0;i<inliers.rows;i++){
+      if(inliers.ucharAt(i,0))count++;
+    }
+
+    inliers.delete();
+
+    if(H.empty()||count<17||count<a.length/2*.45){
+      lost();
+      return;
+    }
+
+    pts=cv.matFromArray(
+      4,1,cv.CV_32FC2,
+      [
+        ref.w*.22,ref.h*.06,
+        ref.w*.78,ref.h*.06,
+        ref.w*.78,ref.h*.72,
+        ref.w*.22,ref.h*.72
+      ]
+    );
+
+    projected=new cv.Mat();
+    cv.perspectiveTransform(pts,projected,H);
+
+    const xs=[];
+    const ys=[];
+
+    for(let i=0;i<4;i++){
+      xs.push(projected.data32F[i*2]);
+      ys.push(projected.data32F[i*2+1]);
+    }
+
+    const left=Math.min(...xs);
+    const right=Math.max(...xs);
+    const top=Math.min(...ys);
+    const bottom=Math.max(...ys);
+
+    const w=right-left;
+    const h=bottom-top;
+
+    if(
+      ![left,right,top,bottom].every(Number.isFinite)||
+      w<35||h<60||w>620||h>470||
+      right<0||left>640||bottom<0||top>480
+    ){
+      lost();
+      return;
+    }
+
+    const next={
+      x:(left+right)/2,
+      y:(top+bottom)/2,
+      w,h
+    };
+
+    if(tracking){
+      next.x=tracking.x*.65+next.x*.35;
+      next.y=tracking.y*.65+next.y*.35;
+      next.w=tracking.w*.65+next.w*.35;
+      next.h=tracking.h*.65+next.h*.35;
+    }
+
+    tracking=next;
+    confirmed++;
+    missing=0;
+
+    if(confirmed>=3&&!playing){
+      playing=true;
+      storyStart=performance.now();
+      replay.style.display='inline-block';
+    }
+  }catch(e){
+    console.warn('Reconocimiento:',e);
+    lost();
+  }finally{
+    if(matches)matches.delete();
+    if(src)src.delete();
+    if(dst)dst.delete();
+    if(H)H.delete();
+    if(projected)projected.delete();
+    if(pts)pts.delete();
+    scanBusy=false;
+  }
+}
+
+function line(x1,y1,x2,y2,color='#f5efe4',width=9){
+  ctx.strokeStyle=color;
+  ctx.lineWidth=width;
+  ctx.lineCap='round';
+  ctx.beginPath();
+  ctx.moveTo(x1,y1);
+  ctx.lineTo(x2,y2);
+  ctx.stroke();
+}
+
+function circle(x,y,r,color){
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.fill();
+}
+
+function laptop(){
+  ctx.fillStyle='#7789a6';
+  ctx.fillRect(-39,-53,78,48);
+
+  ctx.fillStyle='#52c7f2';
+  ctx.fillRect(-34,-48,68,36);
+
+  ctx.fillStyle='#aab4c3';
+  ctx.fillRect(-49,-4,98,8);
+}
+
+function puppet(t){
+  const dance=t>=8&&t<15;
+  const throwing=t>=5&&t<8;
+  const enter=t>=15;
+
+  const beat=dance?Math.sin((t-8)*8):0;
+  const jump=dance?Math.abs(Math.sin((t-8)*7))*12:0;
+
+  ctx.save();
+  ctx.translate(0,-jump);
+
+  if(enter){
+    const f=Math.min(1,(t-15)/5);
+    ctx.scale(1-f*.6,1-f*.6);
+    ctx.globalAlpha=1-f*.8;
+  }
+
+  // Piernas articuladas.
+  line(-20,15,-30,72,'#eee6d1',12);
+  line(20,15,30,72,'#eee6d1',12);
+
+  line(-30,72,-33+beat*9,123,'#eee6d1',9);
+  line(30,72,33-beat*9,123,'#eee6d1',9);
+
+  // Zapatos cafés.
+  ctx.fillStyle='#4b2b24';
+  ctx.fillRect(-62+beat*9,112,42,16);
+  ctx.fillRect(19-beat*9,112,42,16);
+
+  // Brazos.
+  line(-31,-71,-57,-34+beat*12,'#eee6d1',11);
+  line(31,-71,57,-34-beat*12,'#eee6d1',11);
+
+  line(-57,-34+beat*12,-62,-1+beat*18,'#eee6d1',9);
+  line(57,-34-beat*12,62,-1-beat*18,'#eee6d1',9);
+
+  for(const x of [-57,57]){
+    circle(x,-34,5,'#c49c48');
+  }
+
+  // Chaleco azul marino.
+  ctx.fillStyle='#182a57';
+  ctx.beginPath();
+  ctx.moveTo(-38,-83);
+  ctx.lineTo(38,-83);
+  ctx.lineTo(31,10);
+  ctx.lineTo(-31,10);
+  ctx.closePath();
+  ctx.fill();
+
+  line(0,-78,0,7,'#0b152d',3);
+  circle(4,-44,4,'#f3eee2');
+  circle(4,-22,4,'#f3eee2');
+
+  // Cráneo.
+  ctx.fillStyle='#f5f0e4';
+  ctx.beginPath();
+  ctx.ellipse(0,-116,45,47,0,0,Math.PI*2);
+  ctx.fill();
+
+  circle(-17,-124,12,'#211c29');
+  circle(17,-124,12,'#211c29');
+
+  // Nariz.
+  ctx.fillStyle='#211c29';
+  ctx.beginPath();
+  ctx.moveTo(0,-111);
+  ctx.lineTo(-6,-101);
+  ctx.lineTo(6,-101);
+  ctx.closePath();
+  ctx.fill();
+
+  // Sonrisa.
+  ctx.strokeStyle='#211c29';
+  ctx.lineWidth=3;
+  ctx.beginPath();
+  ctx.arc(0,-112,30,.2,Math.PI-.2);
+  ctx.stroke();
+
+  for(let x=-21;x<=21;x+=7){
+    line(x,-91,x,-82,'#211c29',1.5);
+  }
+
+  // Trabajando.
+  if(t<5){
+    ctx.save();
+    ctx.translate(0,-3);
+    laptop();
+    ctx.restore();
+  }
+
+  // Lanzando la laptop.
+  if(throwing){
+    const d=t-5;
+
+    if(d<1){
+      ctx.save();
+      ctx.translate(0,-3-d*25);
+      laptop();
+      ctx.restore();
+    }else{
+      const f=d-1;
+      ctx.save();
+      ctx.translate(f*100,-f*85+f*f*45);
+      ctx.rotate(f*4);
+      laptop();
+      ctx.restore();
+    }
+  }
+
+  ctx.restore();
+}
+
+function portal(t){
+  const f=Math.max(0,Math.min(1,(t-15)/1.5));
+
+  ctx.save();
+  ctx.globalAlpha=f;
+
+  ctx.strokeStyle='#ff9d25';
+  ctx.lineWidth=13;
+  ctx.shadowColor='#ff9d25';
+  ctx.shadowBlur=18;
+
+  ctx.beginPath();
+  ctx.ellipse(0,-45,80,130,0,0,Math.PI*2);
+  ctx.stroke();
+
+  ctx.shadowBlur=0;
+  ctx.strokeStyle='#a950ff';
+  ctx.lineWidth=7;
+
+  ctx.beginPath();
+  ctx.ellipse(0,-45,66,113,0,0,Math.PI*2);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function frame(now){
+  requestAnimationFrame(frame);
+
+  if(now-lastScan>650){
+    lastScan=now;
+    detect();
+  }
+
+  const dpr=Math.min(devicePixelRatio||1,2);
+  const W=innerWidth;
+  const H=innerHeight;
+
+  if(
+    canvas.width!==Math.round(W*dpr)||
+    canvas.height!==Math.round(H*dpr)
+  ){
+    canvas.width=Math.round(W*dpr);
+    canvas.height=Math.round(H*dpr);
+  }
+
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  if(!tracking||!playing)return;
+
+  const t=(now-storyStart)/1000;
+
+  if(t>=20){
+    playing=false;
+    confirmed=0;
+    tracking=null;
+    replay.style.display='none';
+    say('Historia terminada. Enfoca de nuevo la calaverita.');
+    return;
+  }
+
+  const vw=video.videoWidth;
+  const vh=video.videoHeight;
+
+  if(!vw||!vh)return;
+
+  const fit=Math.max(W/vw,H/vh);
+  const ox=(W-vw*fit)/2;
+  const oy=(H-vh*fit)/2;
+
+  const x=ox+tracking.x/640*vw*fit;
+  const y=oy+tracking.y/480*vh*fit;
+  const h=tracking.h/480*vh*fit;
+
+  ctx.save();
+  ctx.translate(x,y);
+
+  const scale=Math.max(.3,Math.min(2.2,h/220));
+  ctx.scale(scale,scale);
+
+  if(t>=15)portal(t);
+  puppet(t);
+
+  ctx.restore();
+
+  say(
+    t<5?'💻 Trabajando en la laptop...':
+    t<8?'😤 ¡Aventó la computadora!':
+    t<15?'💃 ¡A bailar!':
+    '✨ ¡Entrando al portal mágico!'
+  );
+}
+
+replay.onclick=()=>{
+  if(tracking){
+    playing=true;
+    storyStart=performance.now();
+  }
+};
+
+window.addEventListener('pagehide',()=>{
+  const s=video.srcObject;
+  if(s){
+    s.getTracks().forEach(t=>t.stop());
+  }
+});
+
+init();
 </script>
 </body>
 </html>
